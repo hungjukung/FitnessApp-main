@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FitTrack AI — 專案簡報</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --green:  #22c55e;
+      --teal:   #14b8a6;
+      --blue:   #3b82f6;
+      --purple: #a855f7;
+      --dark:   #0f172a;
+      --card:   #1e293b;
+      --text:   #e2e8f0;
+      --muted:  #94a3b8;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--dark);
+      color: var(--text);
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Slides ── */
+    .deck { width: 100%; height: 100vh; position: relative; }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 60px 80px;
+      opacity: 0;
+      transform: translateX(60px);
+      transition: opacity .45s ease, transform .45s ease;
+      pointer-events: none;
+    }
+    .slide.active {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: all;
+    }
+    .slide.exit {
+      opacity: 0;
+      transform: translateX(-60px);
+    }
+
+    /* ── Decorative gradient bg ── */
+    .slide::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 15% 20%, rgba(34,197,94,.08) 0%, transparent 55%),
+                  radial-gradient(ellipse at 85% 80%, rgba(59,130,246,.07) 0%, transparent 55%);
+      pointer-events: none;
+    }
+
+    /* ── Typography ── */
+    .tag {
+      font-size: .75rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--green);
+      margin-bottom: 16px;
+    }
+    h1 { font-size: clamp(2.4rem, 5vw, 3.6rem); font-weight: 800; line-height: 1.1; }
+    h2 { font-size: clamp(1.6rem, 3vw, 2.2rem); font-weight: 700; margin-bottom: 32px; }
+    h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 8px; }
+    p, li { font-size: 1rem; color: var(--muted); line-height: 1.7; }
+    strong { color: var(--text); }
+
+    .gradient-text {
+      background: linear-gradient(135deg, var(--green), var(--teal));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ── Cards / Grid ── */
+    .grid { display: grid; gap: 20px; width: 100%; }
+    .g2 { grid-template-columns: 1fr 1fr; }
+    .g3 { grid-template-columns: 1fr 1fr 1fr; }
+    .g4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,.07);
+      border-radius: 16px;
+      padding: 24px;
+    }
+    .card .icon { font-size: 1.8rem; margin-bottom: 12px; }
+
+    /* ── Badge / Chip ── */
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 999px;
+      font-size: .78rem;
+      font-weight: 600;
+    }
+    .badge-green { background: rgba(34,197,94,.15); color: var(--green); }
+    .badge-blue  { background: rgba(59,130,246,.15); color: var(--blue); }
+    .badge-purple{ background: rgba(168,85,247,.15); color: var(--purple); }
+    .badge-teal  { background: rgba(20,184,166,.15); color: var(--teal); }
+
+    /* ── Table ── */
+    table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+    th { text-align: left; padding: 10px 16px; background: rgba(255,255,255,.05); color: var(--green); font-weight: 600; border-radius: 8px; }
+    td { padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,.05); color: var(--muted); }
+    td:first-child { color: var(--text); font-weight: 500; font-family: monospace; }
+    tr:last-child td { border-bottom: none; }
+
+    /* ── Code block ── */
+    .code-block {
+      background: #0d1117;
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 12px;
+      padding: 20px 24px;
+      font-family: 'Cascadia Code', 'Consolas', monospace;
+      font-size: .82rem;
+      line-height: 1.8;
+      color: #a5f3fc;
+    }
+    .code-block .c { color: #6b7280; }
+    .code-block .k { color: #f59e0b; }
+    .code-block .s { color: #86efac; }
+
+    /* ── Flow diagram ── */
+    .flow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+    .flow-node {
+      background: var(--card);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 12px;
+      padding: 14px 20px;
+      text-align: center;
+      min-width: 110px;
+    }
+    .flow-node .icon { font-size: 1.4rem; }
+    .flow-node .label { font-size: .8rem; color: var(--muted); margin-top: 4px; }
+    .flow-arrow { font-size: 1.2rem; color: var(--green); padding: 0 8px; }
+
+    /* ── Progress bar ── */
+    .progress-bar {
+      height: 6px;
+      background: rgba(255,255,255,.08);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: linear-gradient(90deg, var(--green), var(--teal));
+    }
+
+    /* ── Nav ── */
+    #nav {
+      position: fixed;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(30,41,59,.9);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 999px;
+      padding: 10px 20px;
+      z-index: 100;
+    }
+    #nav button {
+      background: none;
+      border: none;
+      color: var(--muted);
+      cursor: pointer;
+      font-size: 1.1rem;
+      padding: 4px 8px;
+      border-radius: 8px;
+      transition: color .2s, background .2s;
+    }
+    #nav button:hover { color: var(--text); background: rgba(255,255,255,.08); }
+    #counter { font-size: .85rem; color: var(--muted); min-width: 52px; text-align: center; }
+
+    .dots { display: flex; gap: 6px; align-items: center; }
+    .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.2);
+      transition: background .3s, transform .3s;
+      cursor: pointer;
+    }
+    .dot.active { background: var(--green); transform: scale(1.4); }
+
+    /* ── Slide-specific ── */
+    #slide-1 { text-align: center; }
+    #slide-1 h1 { margin-bottom: 16px; }
+    #slide-1 .subtitle { font-size: 1.1rem; color: var(--muted); max-width: 520px; margin: 0 auto 28px; }
+    #slide-1 .badges { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; width: 100%; align-items: start; }
+    .left-col h2 { margin-bottom: 16px; }
+    .left-col ul { list-style: none; display: flex; flex-direction: column; gap: 12px; }
+    .left-col li::before { content: '→ '; color: var(--green); }
+
+    .section-header { width: 100%; margin-bottom: 28px; }
+  </style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+  <!-- ── Slide 1: Title ── -->
+  <div class="slide active" id="slide-1">
+    <div class="tag">2025 專案成果</div>
+    <h1>🏋️ FitTrack <span class="gradient-text">AI</span></h1>
+    <p class="subtitle">一款結合 AI 分析的智慧健身追蹤 App，<br>讓體重管理更科學、更直覺。</p>
+    <div class="badges">
+      <span class="badge badge-green">React Native</span>
+      <span class="badge badge-blue">Node.js</span>
+      <span class="badge badge-teal">MySQL + SQLite</span>
+      <span class="badge badge-purple">AI 驅動</span>
+    </div>
+  </div>
+
+  <!-- ── Slide 2: Overview ── -->
+  <div class="slide" id="slide-2">
+    <div class="section-header">
+      <div class="tag">專案簡介</div>
+      <h2>這個 App 在解決什麼問題？</h2>
+    </div>
+    <div class="two-col">
+      <div class="left-col">
+        <ul>
+          <li><strong>體重紀錄</strong> — 每日記錄，自動繪製趨勢圖</li>
+          <li><strong>體態照片</strong> — 拍照對比，視覺化進度</li>
+          <li><strong>AI 分析建議</strong> — 根據數據給出個人化洞察</li>
+          <li><strong>行事曆檢視</strong> — 快速回顧每天的紀錄</li>
+          <li><strong>完整帳號系統</strong> — 安全登入、資料雲端同步</li>
+        </ul>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <div class="card">
+          <div class="icon">🎯</div>
+          <h3>目標族群</h3>
+          <p>想認真管理體態、但不想用複雜 App 的人</p>
+        </div>
+        <div class="card">
+          <div class="icon">✨</div>
+          <h3>核心價值</h3>
+          <p>簡單記錄 + AI 幫你解讀數字背後的意義</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Slide 3: Tech Stack ── -->
+  <div class="slide" id="slide-3">
+    <div class="section-header">
+      <div class="tag">技術架構</div>
+      <h2>Tech Stack</h2>
+    </div>
+    <div class="grid g4">
+      <div class="card">
+        <div class="icon">📱</div>
+        <h3>前端</h3>
+        <p>React Native<br>Expo Router<br>Zustand</p>
+      </div>
+      <div class="card">
+        <div class="icon">🗄️</div>
+        <h3>本地資料庫</h3>
+        <p>SQLite<br>(expo-sqlite)<br>WAL 模式</p>
+      </div>
+      <div class="card">
+        <div class="icon">⚙️</div>
+        <h3>後端</h3>
+        <p>Node.js<br>Express<br>TypeScript</p>
+      </div>
+      <div class="card">
+        <div class="icon">☁️</div>
+        <h3>雲端資料庫</h3>
+        <p>MySQL<br>Connection Pool<br>JWT Auth</p>
+      </div>
+    </div>
+    <div style="margin-top:24px; width:100%;">
+      <div class="flow">
+        <div class="flow-node"><div class="icon">📱</div><div class="label">React Native</div></div>
+        <div class="flow-arrow">⟷</div>
+        <div class="flow-node"><div class="icon">🗃️</div><div class="label">SQLite (本地)</div></div>
+        <div class="flow-arrow">⟷</div>
+        <div class="flow-node"><div class="icon">🔌</div><div class="label">Express API</div></div>
+        <div class="flow-arrow">⟷</div>
+        <div class="flow-node"><div class="icon">🐬</div><div class="label">MySQL (雲端)</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Slide 4: Frontend ── -->
+  <div class="slide" id="slide-4">
+    <div class="section-header">
+      <div class="tag">前端功能</div>
+      <h2>App 畫面架構</h2>
+    </div>
+    <div class="grid g3">
+      <div class="card">
+        <div class="icon">🚀</div>
+        <h3>Onboarding</h3>
+        <p>引導使用者設定目標體重、目前體重、運動習慣等初始資料</p>
+      </div>
+      <div class="card">
+        <div class="icon">🔐</div>
+        <h3>Auth 登入系統</h3>
+        <p>帳號註冊、登入、忘記密碼，以 JWT Token 管理安全狀態</p>
+      </div>
+      <div class="card">
+        <div class="icon">🏠</div>
+        <h3>主頁</h3>
+        <p>今日體重輸入、AI 建議卡片、本週摘要統計</p>
+      </div>
+      <div class="card">
+        <div class="icon">📊</div>
+        <h3>分析頁</h3>
+        <p>體重長條圖、週趨勢折線、進度統計</p>
+      </div>
+      <div class="card">
+        <div class="icon">📅</div>
+        <h3>行事曆</h3>
+        <p>以日曆格式瀏覽每天的體重與照片紀錄</p>
+      </div>
+      <div class="card">
+        <div class="icon">⚙️</div>
+        <h3>設定</h3>
+        <p>個人資料、主題切換、帳號管理</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Slide 5: Local DB ── -->
+  <div class="slide" id="slide-5">
+    <div class="section-header">
+      <div class="tag">資料庫設計</div>
+      <h2>本地 SQLite 資料表</h2>
+    </div>
+    <div class="grid g3" style="margin-bottom:20px;">
+      <div class="card">
+        <div class="icon">⚖️</div>
+        <h3>weight_logs</h3>
+        <p>每天的體重紀錄，以日期為主鍵，只儲存一筆</p>
+      </div>
+      <div class="card">
+        <div class="icon">📷</div>
+        <h3>photo_logs</h3>
+        <p>體態照片，每天可存多張，支援排序</p>
+      </div>
+      <div class="card">
+        <div class="icon">🤖</div>
+        <h3>ai_insights</h3>
+        <p>AI 模型產生的每日建議文字，記錄使用的 model_id</p>
+      </div>
+    </div>
+    <div class="card" style="width:100%">
+      <p style="font-size:.85rem;">💡 <strong>設計重點：</strong>每個使用者有獨立的 SQLite 檔案（<code>fittrack_[userId].db</code>），資料完全隔離。支援 Migration 版本管理，App 升級時自動套用結構變更。</p>
+    </div>
+  </div>
+
+  <!-- ── Slide 6: Cloud DB ── -->
+  <div class="slide" id="slide-6">
+    <div class="section-header">
+      <div class="tag">後端資料庫</div>
+      <h2>雲端 MySQL 資料表</h2>
+    </div>
+    <div class="two-col">
+      <div>
+        <h3 style="margin-bottom:14px; color: var(--green);">users</h3>
+        <table>
+          <tr><th>欄位</th><th>說明</th></tr>
+          <tr><td>id</td><td>UUID 主鍵</td></tr>
+          <tr><td>email</td><td>唯一信箱</td></tr>
+          <tr><td>password_hash</td><td>bcrypt 雜湊</td></tr>
+          <tr><td>reset_token</td><td>忘記密碼 token</td></tr>
+          <tr><td>created_at</td><td>毫秒時間戳</td></tr>
+        </table>
+      </div>
+      <div>
+        <h3 style="margin-bottom:14px; color: var(--blue);">refresh_tokens</h3>
+        <table>
+          <tr><th>欄位</th><th>說明</th></tr>
+          <tr><td>token</td><td>UUID 主鍵</td></tr>
+          <tr><td>user_id</td><td>FK → users.id</td></tr>
+          <tr><td>expires_at</td><td>90 天後過期</td></tr>
+        </table>
+        <div class="card" style="margin-top:16px; padding: 14px 18px;">
+          <p style="font-size: .85rem;">🔑 Token Rotation：每次 refresh 時舊 token 作廢、換發新 token，提升安全性</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Slide 7: AI ── -->
+  <div class="slide" id="slide-7">
+    <div class="section-header">
+      <div class="tag">AI 功能</div>
+      <h2>AI 驅動的個人洞察</h2>
+    </div>
+    <div class="two-col">
+      <div>
+        <div class="card" style="margin-bottom:16px;">
+          <div class="icon">🧠</div>
+          <h3>SmolVLM2</h3>
+          <p>本地端輕量視覺語言模型，可分析體態照片並給出建議</p>
+        </div>
+        <div class="card">
+          <div class="icon">🔀</div>
+          <h3>AIServiceRouter</h3>
+          <p>根據裝置能力自動選擇最適合的 AI 模型，確保流暢體驗</p>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="margin-bottom: 16px;">AI 分析流程</h3>
+        <div style="display:flex; flex-direction:column; gap:12px;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span style="background:rgba(34,197,94,.2); border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--green); font-size:.85rem;">1</span>
+            <p>使用者輸入體重 / 上傳照片</p>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span style="background:rgba(34,197,94,.2); border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--green); font-size:.85rem;">2</span>
+            <p>AIServiceRouter 選擇最佳模型</p>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span style="background:rgba(34,197,94,.2); border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--green); font-size:.85rem;">3</span>
+            <p>生成個人化趨勢建議</p>
+          </div>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span style="background:rgba(34,197,94,.2); border-radius:50%; width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-weight:700; color:var(--green); font-size:.85rem;">4</span>
+            <p>儲存至 ai_insights，卡片顯示</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Slide 8: Auth Flow ── -->
+  <div class="slide" id="slide-8">
+    <div class="section-header">
+      <div class="tag">安全設計</div>
+      <h2>認證與授權流程</h2>
+    </div>
+    <div class="grid g3" style="margin-bottom:20px">
+      <div class="card">
+        <div class="icon">🪙</div>
+        <h3>Access Token</h3>
+        <p>有效期 <strong>1 小時</strong><br>JWT 格式，每次 API 請求帶入</p>
+        <div class="progress-bar" style="margin-top:12px"><div class="progress-fill" style="width:15%"></div></div>
+        <p style="font-size:.75rem; margin-top:6px;">短效 → 降低洩漏風險</p>
+      </div>
+      <div class="card">
+        <div class="icon">🔄</div>
+        <h3>Refresh Token</h3>
+        <p>有效期 <strong>90 天</strong><br>UUID 格式，存於資料庫</p>
+        <div class="progress-bar" style="margin-top:12px"><div class="progress-fill" style="width:85%"></div></div>
+        <p style="font-size:.75rem; margin-top:6px;">長效 → 使用者不需頻繁登入</p>
+      </div>
+      <div class="card">
+        <div class="icon">🔒</div>
+        <h3>密碼安全</h3>
+        <p>bcrypt 12 rounds 雜湊<br>永不儲存明文密碼</p>
+        <div style="margin-top:12px">
+          <span class="badge badge-green">防彩虹表攻擊</span>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="width:100%;">
+      <div class="flow">
+        <div class="flow-node"><div class="icon">👤</div><div class="label">登入</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node"><div class="icon">🪙</div><div class="label">Access Token</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node"><div class="icon">⏰</div><div class="label">1hr 後過期</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node"><div class="icon">🔄</div><div class="label">Refresh 換新</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-node"><div class="icon">✅</div><div class="label">繼續使用</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Slide 9: Future ── -->
+  <div class="slide" id="slide-9">
+    <div class="section-header">
+      <div class="tag">未來展望</div>
+      <h2>還有什麼可以做？</h2>
+    </div>
+    <div class="grid g2">
+      <div class="card">
+        <div class="icon">📧</div>
+        <h3>信箱驗證 / 密碼重設</h3>
+        <p>後端已留好 token 欄位，只差串接 SendGrid 或 Resend 發信服務</p>
+        <div style="margin-top:10px"><span class="badge badge-purple">TODO</span></div>
+      </div>
+      <div class="card">
+        <div class="icon">🍽️</div>
+        <h3>飲食追蹤</h3>
+        <p>新增卡路里、巨量營養素紀錄，搭配 AI 給出飲食建議</p>
+        <div style="margin-top:10px"><span class="badge badge-blue">規劃中</span></div>
+      </div>
+      <div class="card">
+        <div class="icon">🏃</div>
+        <h3>運動記錄</h3>
+        <p>整合運動類型、次數、時長，與體重趨勢做相關分析</p>
+        <div style="margin-top:10px"><span class="badge badge-blue">規劃中</span></div>
+      </div>
+      <div class="card">
+        <div class="icon">☁️</div>
+        <h3>雲端同步</h3>
+        <p>目前健身資料僅在本地 SQLite，未來可同步至後端 MySQL</p>
+        <div style="margin-top:10px"><span class="badge badge-teal">架構已備</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Slide 10: Conclusion ── -->
+  <div class="slide" id="slide-10">
+    <div class="tag">結語</div>
+    <h1 style="margin-bottom:20px;">謝謝聆聽 <span class="gradient-text">🙏</span></h1>
+    <p style="max-width:560px; text-align:center; font-size:1.05rem; margin-bottom:40px;">
+      FitTrack AI 從登入系統到 AI 分析，建立了一個完整的健身追蹤產品雛形。
+      透過前後端分離架構與雙層資料庫設計，兼顧了<strong>離線體驗</strong>與<strong>帳號安全</strong>。
+    </p>
+    <div class="grid g3" style="max-width:600px">
+      <div class="card" style="text-align:center;">
+        <div style="font-size:1.6rem; font-weight:800; color:var(--green);">2</div>
+        <p>資料庫層</p>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="font-size:1.6rem; font-weight:800; color:var(--blue);">6</div>
+        <p>資料表</p>
+      </div>
+      <div class="card" style="text-align:center;">
+        <div style="font-size:1.6rem; font-weight:800; color:var(--purple);">5</div>
+        <p>Auth API</p>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /.deck -->
+
+<!-- ── Navigation ── -->
+<div id="nav">
+  <button id="btn-prev" title="上一頁">◀</button>
+  <div class="dots" id="dots"></div>
+  <span id="counter">1 / 10</span>
+  <button id="btn-next" title="下一頁">▶</button>
+</div>
+
+<script>
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const total = slides.length;
+  let cur = 0;
+
+  const dotsEl = document.getElementById('dots');
+  const counter = document.getElementById('counter');
+
+  // Build dots
+  slides.forEach((_, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    d.addEventListener('click', () => goTo(i));
+    dotsEl.appendChild(d);
+  });
+
+  function goTo(next) {
+    if (next < 0 || next >= total || next === cur) return;
+    slides[cur].classList.remove('active');
+    slides[cur].classList.add('exit');
+    setTimeout(() => slides[cur < next ? cur : next + 1 < total ? next + 1 : next].classList.remove('exit'), 450);
+    slides[cur].addEventListener('transitionend', function handler() {
+      slides[cur].classList.remove('exit');
+      this.removeEventListener('transitionend', handler);
+    });
+    cur = next;
+    slides[cur].classList.add('active');
+    document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i === cur));
+    counter.textContent = `${cur + 1} / ${total}`;
+  }
+
+  document.getElementById('btn-prev').addEventListener('click', () => goTo(cur - 1));
+  document.getElementById('btn-next').addEventListener('click', () => goTo(cur + 1));
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); goTo(cur + 1); }
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')                    { e.preventDefault(); goTo(cur - 1); }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "FitTrack AI",
+    "slug": "fittrack-ai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.fittrack.ai",
+      "infoPlist": {
+        "NSCameraUsageDescription": "FitTrack AI 需要使用相機來拍攝您的體態照片，以及拍攝食物讓 AI 估算熱量。體態照片預設僅儲存於本裝置，不會存入相簿；食物照片只用於當次分析，不會保存。",
+        "NSPhotoLibraryUsageDescription": "FitTrack AI 需要讀取您選取的體態照片或食物照片。體態照片會複製到 App 私有儲存空間；食物照片只用於當次 AI 分析，不會保存。",
+        "NSPhotoLibraryAddUsageDescription": "FitTrack AI 不會將照片儲存至您的相簿。"
+      }
+    },
+    "android": {
+      "package": "com.fittrack.ai",
+      "permissions": [
+        "CAMERA",
+        "READ_MEDIA_IMAGES",
+        "READ_EXTERNAL_STORAGE"
+      ]
+    },
+    "plugins": [
+      "expo-sqlite",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "FitTrack AI 需要使用相機來拍攝體態照片與食物照片。體態照片預設僅儲存於本裝置，食物照片只用於當次分析。",
+          "microphonePermission": false,
+          "photosPermission": "FitTrack AI 需要讀取您選取的體態照片或食物照片。體態照片會複製到本機 App 私有儲存空間，食物照片只用於當次分析。"
+        }
+      ],
+      "expo-file-system"
+    ]
+  }
+}
